@@ -183,8 +183,15 @@ async def get_stats():
     # Get total students
     total_students = await db.students.count_documents({})
     
-    # Get total books
-    total_books = await db.books.count_documents({})
+    # Get total books (sum of all quantities)
+    books_cursor = db.books.find({})
+    books = await books_cursor.to_list(1000)
+    total_book_copies = sum(book.get('quantity', 1) for book in books)
+    total_book_titles = len(books)
+    
+    # Get borrowed books count
+    total_borrowed = sum(book.get('borrowed_count', 0) for book in books)
+    available_copies = total_book_copies - total_borrowed
     
     # Get class counts
     pipeline = [
@@ -193,13 +200,12 @@ async def get_stats():
     ]
     class_counts = await db.students.aggregate(pipeline).to_list(1000)
     
-    # Get available books count
-    available_books = await db.books.count_documents({"available": True})
-    
     return {
         "total_students": total_students,
-        "total_books": total_books,
-        "available_books": available_books,
+        "total_book_titles": total_book_titles,
+        "total_book_copies": total_book_copies,
+        "available_copies": available_copies,
+        "borrowed_copies": total_borrowed,
         "total_classes": len(class_counts),
         "class_counts": {item["_id"]: item["count"] for item in class_counts}
     }
