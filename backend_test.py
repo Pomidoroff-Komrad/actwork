@@ -271,6 +271,96 @@ class LibrarianAPITester:
             self.log_result("Delete Book", False, f"Exception: {str(e)}")
         return False
 
+    def test_get_stats(self):
+        """Test getting comprehensive statistics"""
+        try:
+            response = self.session.get(f"{API_URL}/stats")
+            if response.status_code == 200:
+                stats = response.json()
+                required_fields = ['total_students', 'total_books', 'available_books', 'total_classes', 'class_counts']
+                
+                # Check if all required fields are present
+                missing_fields = [field for field in required_fields if field not in stats]
+                if missing_fields:
+                    self.log_result("Get Stats", False, f"Missing fields: {missing_fields}")
+                    return None
+                
+                # Validate data types
+                if not isinstance(stats['total_students'], int):
+                    self.log_result("Get Stats", False, "total_students should be an integer")
+                    return None
+                if not isinstance(stats['total_books'], int):
+                    self.log_result("Get Stats", False, "total_books should be an integer")
+                    return None
+                if not isinstance(stats['available_books'], int):
+                    self.log_result("Get Stats", False, "available_books should be an integer")
+                    return None
+                if not isinstance(stats['total_classes'], int):
+                    self.log_result("Get Stats", False, "total_classes should be an integer")
+                    return None
+                if not isinstance(stats['class_counts'], dict):
+                    self.log_result("Get Stats", False, "class_counts should be a dictionary")
+                    return None
+                
+                # Validate logical consistency
+                if stats['available_books'] > stats['total_books']:
+                    self.log_result("Get Stats", False, "available_books cannot be greater than total_books")
+                    return None
+                
+                self.log_result("Get Stats", True)
+                return stats
+            else:
+                self.log_result("Get Stats", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_result("Get Stats", False, f"Exception: {str(e)}")
+        return None
+
+    def test_create_class(self, class_name):
+        """Test creating a new class"""
+        try:
+            class_data = {"name": class_name}
+            response = self.session.post(f"{API_URL}/classes", json=class_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                if "message" in result and "class_name" in result:
+                    if result["class_name"] == class_name:
+                        self.log_result(f"Create Class ({class_name})", True)
+                        return result
+                    else:
+                        self.log_result(f"Create Class ({class_name})", False, "Returned class name doesn't match")
+                else:
+                    self.log_result(f"Create Class ({class_name})", False, "Missing message or class_name in response")
+            else:
+                self.log_result(f"Create Class ({class_name})", False, f"Status code: {response.status_code}")
+        except Exception as e:
+            self.log_result(f"Create Class ({class_name})", False, f"Exception: {str(e)}")
+        return None
+
+    def test_class_edge_cases(self):
+        """Test edge cases for class creation"""
+        # Test empty class name
+        try:
+            response = self.session.post(f"{API_URL}/classes", json={"name": ""})
+            # This should either succeed (allowing empty names) or fail with validation error
+            if response.status_code in [200, 400, 422]:
+                self.log_result("Class Edge Case - Empty Name", True)
+            else:
+                self.log_result("Class Edge Case - Empty Name", False, f"Unexpected status: {response.status_code}")
+        except Exception as e:
+            self.log_result("Class Edge Case - Empty Name", False, f"Exception: {str(e)}")
+
+        # Test duplicate class creation (should succeed as it's just marking readiness)
+        try:
+            response1 = self.session.post(f"{API_URL}/classes", json={"name": "TestDuplicate"})
+            response2 = self.session.post(f"{API_URL}/classes", json={"name": "TestDuplicate"})
+            if response1.status_code == 200 and response2.status_code == 200:
+                self.log_result("Class Edge Case - Duplicate Names", True)
+            else:
+                self.log_result("Class Edge Case - Duplicate Names", False, f"Status codes: {response1.status_code}, {response2.status_code}")
+        except Exception as e:
+            self.log_result("Class Edge Case - Duplicate Names", False, f"Exception: {str(e)}")
+
     def test_error_handling(self):
         """Test error handling for non-existent IDs"""
         fake_id = str(uuid.uuid4())
