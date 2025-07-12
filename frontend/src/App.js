@@ -329,12 +329,30 @@ function App() {
   const [selectedClass, setSelectedClass] = useState(null);
   const [students, setStudents] = useState([]);
   const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
+  const [isAddClassModalOpen, setIsAddClassModalOpen] = useState(false);
   const [isBookPanelOpen, setIsBookPanelOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
+  const [stats, setStats] = useState({
+    total_students: 0,
+    total_books: 0,
+    available_books: 0,
+    total_classes: 0,
+    class_counts: {}
+  });
 
   useEffect(() => {
     fetchClasses();
+    fetchStats();
   }, []);
+
+  const fetchStats = async () => {
+    try {
+      const response = await axios.get(`${API}/stats`);
+      setStats(response.data);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  };
 
   const fetchClasses = async () => {
     try {
