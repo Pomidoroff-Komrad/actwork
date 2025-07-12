@@ -153,6 +153,42 @@ async def delete_book(book_id: str):
         raise HTTPException(status_code=404, detail="Book not found")
     return {"message": "Book deleted successfully"}
 
+# Class management
+class ClassCreate(BaseModel):
+    name: str
+
+@api_router.post("/classes")
+async def create_class(class_data: ClassCreate):
+    # For now, we'll just return success since classes are created when students are added
+    # But we could store empty classes in the future if needed
+    return {"message": f"Class {class_data.name} is ready to accept students", "class_name": class_data.name}
+
+@api_router.get("/stats")
+async def get_stats():
+    # Get total students
+    total_students = await db.students.count_documents({})
+    
+    # Get total books
+    total_books = await db.books.count_documents({})
+    
+    # Get class counts
+    pipeline = [
+        {"$group": {"_id": "$class_name", "count": {"$sum": 1}}},
+        {"$sort": {"_id": 1}}
+    ]
+    class_counts = await db.students.aggregate(pipeline).to_list(1000)
+    
+    # Get available books count
+    available_books = await db.books.count_documents({"available": True})
+    
+    return {
+        "total_students": total_students,
+        "total_books": total_books,
+        "available_books": available_books,
+        "total_classes": len(class_counts),
+        "class_counts": {item["_id"]: item["count"] for item in class_counts}
+    }
+
 # Include the router in the main app
 app.include_router(api_router)
 
