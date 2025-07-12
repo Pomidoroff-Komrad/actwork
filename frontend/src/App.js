@@ -509,7 +509,36 @@ function App() {
     }
   };
 
-  const handleUpdateStudent = async (studentId, updates) => {
+  const handleBorrowBook = async () => {
+    // Refresh student data and stats after borrowing
+    if (selectedClass) {
+      fetchStudentsByClass(selectedClass);
+    }
+    fetchStats();
+    fetchBooks();
+  };
+
+  const handleReturnBook = async (studentId, bookId) => {
+    try {
+      await axios.post(`${API}/return`, {
+        student_id: studentId,
+        book_id: bookId
+      });
+      // Refresh data
+      if (selectedClass) {
+        fetchStudentsByClass(selectedClass);
+      }
+      fetchStats();
+      fetchBooks();
+    } catch (error) {
+      console.error("Error returning book:", error);
+      alert(error.response?.data?.detail || "Failed to return book");
+    }
+  };
+
+  const getAvailableBooks = () => {
+    return allBooks.filter(book => (book.quantity - book.borrowed_count) > 0);
+  };
     try {
       const response = await axios.put(`${API}/students/${studentId}`, updates);
       setStudents(students.map(student => student.id === studentId ? response.data : student));
