@@ -539,6 +539,8 @@ function App() {
   const getAvailableBooks = () => {
     return allBooks.filter(book => (book.quantity - book.borrowed_count) > 0);
   };
+
+  const handleUpdateStudent = async (studentId, updates) => {
     try {
       const response = await axios.put(`${API}/students/${studentId}`, updates);
       setStudents(students.map(student => student.id === studentId ? response.data : student));
