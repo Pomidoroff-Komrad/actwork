@@ -593,12 +593,12 @@ function App() {
               <div className="text-blue-100">Classes</div>
             </div>
             <div>
-              <div className="text-2xl font-bold">{stats.total_books}</div>
-              <div className="text-blue-100">Total Books</div>
+              <div className="text-2xl font-bold">{stats.total_book_copies}</div>
+              <div className="text-blue-100">Book Copies</div>
             </div>
             <div>
-              <div className="text-2xl font-bold">{stats.available_books}</div>
-              <div className="text-blue-100">Available Books</div>
+              <div className="text-2xl font-bold">{stats.available_copies}</div>
+              <div className="text-blue-100">Available</div>
             </div>
           </div>
         </div>
