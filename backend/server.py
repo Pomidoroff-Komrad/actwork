@@ -168,6 +168,86 @@ async def delete_book(book_id: str):
         raise HTTPException(status_code=404, detail="Book not found")
     return {"message": "Book deleted successfully"}
 
+# Borrowing and returning endpoints
+@api_router.post("/borrow")
+async def borrow_book(borrow_request: BorrowRequest):
+    # Check if book exists and is available
+    book = await db.books.find_one({"id": borrow_request.book_id})
+    if not book:
+        raise HTTPException(status_code=404, detail="Book not found")
+    
+    book_obj = Book(**book)
+    if book_obj.borrowed_count >= book_obj.quantity:
+        raise HTTPException(status_code=400, detail="No copies available")
+    
+    # Check if student exists
+    student = await db.students.find_one({"id": borrow_request.student_id})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Check if student already has this book
+    student_obj = Student(**student)
+    for borrowed_book in student_obj.borrowed_books:
+        if borrowed_book.book_id == borrow_request.book_id:
+            raise HTTPException(status_code=400, detail="Student already has this book")
+    
+    # Calculate due date
+    due_date = datetime.utcnow() + timedelta(days=borrow_request.due_days)
+    
+    # Add book to student's borrowed books
+    borrowed_book = BorrowedBook(
+        book_id=borrow_request.book_id,
+        book_title=book_obj.title,
+        borrowed_date=datetime.utcnow(),
+        due_date=due_date
+    )
+    
+    await db.students.update_one(
+        {"id": borrow_request.student_id},
+        {"$push": {"borrowed_books": borrowed_book.dict()}}
+    )
+    
+    # Increment borrowed count for book
+    await db.books.update_one(
+        {"id": borrow_request.book_id},
+        {"$inc": {"borrowed_count": 1}}
+    )
+    
+    return {"message": f"Book '{book_obj.title}' borrowed successfully", "due_date": due_date}
+
+@api_router.post("/return")
+async def return_book(return_request: ReturnRequest):
+    # Check if student exists
+    student = await db.students.find_one({"id": return_request.student_id})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Check if student has this book
+    student_obj = Student(**student)
+    book_found = False
+    for borrowed_book in student_obj.borrowed_books:
+        if borrowed_book.book_id == return_request.book_id:
+            book_found = True
+            book_title = borrowed_book.book_title
+            break
+    
+    if not book_found:
+        raise HTTPException(status_code=400, detail="Student doesn't have this book")
+    
+    # Remove book from student's borrowed books
+    await db.students.update_one(
+        {"id": return_request.student_id},
+        {"$pull": {"borrowed_books": {"book_id": return_request.book_id}}}
+    )
+    
+    # Decrement borrowed count for book
+    await db.books.update_one(
+        {"id": return_request.book_id},
+        {"$inc": {"borrowed_count": -1}}
+    )
+    
+    return {"message": f"Book '{book_title}' returned successfully"}
+
 # Class management
 class ClassCreate(BaseModel):
     name: str
