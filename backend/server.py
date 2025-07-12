@@ -27,11 +27,18 @@ api_router = APIRouter(prefix="/api")
 
 
 # Define Models
+class BorrowedBook(BaseModel):
+    book_id: str
+    book_title: str
+    borrowed_date: datetime
+    due_date: Optional[datetime] = None
+
 class Student(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     first_name: str
     last_name: str
     class_name: str
+    borrowed_books: List[BorrowedBook] = []
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class StudentCreate(BaseModel):
@@ -48,21 +55,29 @@ class Book(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     title: str
     author: str
-    isbn: Optional[str] = None
+    quantity: int = 1
+    borrowed_count: int = 0
     available: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class BookCreate(BaseModel):
     title: str
     author: str
-    isbn: Optional[str] = None
-    available: bool = True
+    quantity: int = 1
 
 class BookUpdate(BaseModel):
     title: Optional[str] = None
     author: Optional[str] = None
-    isbn: Optional[str] = None
-    available: Optional[bool] = None
+    quantity: Optional[int] = None
+
+class BorrowRequest(BaseModel):
+    student_id: str
+    book_id: str
+    due_days: Optional[int] = 14  # Default 2 weeks
+
+class ReturnRequest(BaseModel):
+    student_id: str
+    book_id: str
 
 # Basic route
 @api_router.get("/")
