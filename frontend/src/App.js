@@ -5,6 +5,65 @@ import axios from "axios";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Component for adding new class
+const AddClassModal = ({ isOpen, onClose, onAdd }) => {
+  const [className, setClassName] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post(`${API}/classes`, {
+        name: className
+      });
+      onAdd(className);
+      setClassName("");
+      onClose();
+    } catch (error) {
+      console.error("Error adding class:", error);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-96">
+        <h2 className="text-xl font-bold mb-4">Add New Class</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Class Name
+            </label>
+            <input
+              type="text"
+              value={className}
+              onChange={(e) => setClassName(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+              placeholder="e.g., 7A, 7B, 8C"
+              required
+            />
+          </div>
+          <div className="flex justify-end space-x-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+            >
+              Add Class
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 // Component for adding students
 const AddStudentModal = ({ isOpen, onClose, onAdd }) => {
   const [firstName, setFirstName] = useState("");
