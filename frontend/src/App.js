@@ -804,6 +804,17 @@ function App() {
         onClose={() => setIsAddStudentModalOpen(false)}
         onAdd={handleAddStudent}
       />
+
+      <BorrowBookModal
+        isOpen={isBorrowModalOpen}
+        onClose={() => {
+          setIsBorrowModalOpen(false);
+          setSelectedStudent(null);
+        }}
+        student={selectedStudent}
+        availableBooks={getAvailableBooks()}
+        onBorrow={handleBorrowBook}
+      />
       
       <BookPanel 
         isOpen={isBookPanelOpen}
