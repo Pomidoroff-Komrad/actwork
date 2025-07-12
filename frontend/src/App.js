@@ -611,6 +611,12 @@ function App() {
       </button>
 
       {/* Modals and Panels */}
+      <AddClassModal 
+        isOpen={isAddClassModalOpen}
+        onClose={() => setIsAddClassModalOpen(false)}
+        onAdd={handleAddClass}
+      />
+      
       <AddStudentModal 
         isOpen={isAddStudentModalOpen}
         onClose={() => setIsAddStudentModalOpen(false)}
