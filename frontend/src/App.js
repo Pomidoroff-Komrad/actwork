@@ -359,11 +359,12 @@ const BookPanel = ({ isOpen, onClose }) => {
                     className="w-full px-2 py-1 border rounded mb-2"
                   />
                   <input
-                    type="text"
-                    value={editingBook.isbn || ""}
-                    onChange={(e) => setEditingBook({...editingBook, isbn: e.target.value})}
+                    type="number"
+                    value={editingBook.quantity || 1}
+                    onChange={(e) => setEditingBook({...editingBook, quantity: parseInt(e.target.value) || 1})}
                     className="w-full px-2 py-1 border rounded mb-2"
-                    placeholder="ISBN"
+                    placeholder="Quantity"
+                    min="1"
                   />
                   <div className="flex space-x-2">
                     <button type="submit" className="px-3 py-1 bg-blue-500 text-white rounded text-sm">
