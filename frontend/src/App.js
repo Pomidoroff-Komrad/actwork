@@ -383,8 +383,13 @@ const BookPanel = ({ isOpen, onClose }) => {
                 <div>
                   <h4 className="font-semibold">{book.title}</h4>
                   <p className="text-gray-600">by {book.author}</p>
-                  {book.isbn && <p className="text-sm text-gray-500">ISBN: {book.isbn}</p>}
-                  <p className="text-sm">{book.available ? "Available" : "Checked out"}</p>
+                  <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
+                    <span>Quantity: {book.quantity}</span>
+                    <span>•</span>
+                    <span className={book.borrowed_count > 0 ? "text-orange-600" : "text-green-600"}>
+                      {(book.quantity - book.borrowed_count)} available
+                    </span>
+                  </div>
                   <div className="flex space-x-2 mt-2">
                     <button
                       onClick={() => setEditingBook(book)}
