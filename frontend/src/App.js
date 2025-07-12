@@ -148,7 +148,7 @@ const AddClassModal = ({ isOpen, onClose, onAdd }) => {
 };
 
 // Component for adding students
-const AddStudentModal = ({ isOpen, onClose, onAdd }) => {
+const AddStudentModal = ({ isOpen, onClose, onAdd, availableClasses }) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [className, setClassName] = useState("");
@@ -206,14 +206,22 @@ const AddStudentModal = ({ isOpen, onClose, onAdd }) => {
             <label className="block text-gray-700 text-sm font-bold mb-2">
               Class
             </label>
-            <input
-              type="text"
+            <select
               value={className}
               onChange={(e) => setClassName(e.target.value)}
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-              placeholder="e.g., 7A, 7B"
               required
-            />
+            >
+              <option value="">Select a class...</option>
+              {availableClasses.map((cls) => (
+                <option key={cls} value={cls}>
+                  {cls}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              Don't see your class? Add it first using the "Add Class" button.
+            </p>
           </div>
           <div className="flex justify-end space-x-2">
             <button
