@@ -517,6 +517,9 @@ function App() {
                   ← Back to Classes
                 </button>
                 <h2 className="text-2xl font-bold text-gray-800">Class {selectedClass}</h2>
+                <p className="text-gray-600">
+                  {stats.class_counts[selectedClass] || 0} student{stats.class_counts[selectedClass] !== 1 ? 's' : ''} enrolled
+                </p>
               </div>
             </div>
             
