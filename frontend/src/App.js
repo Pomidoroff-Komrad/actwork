@@ -477,12 +477,17 @@ function App() {
                 <div
                   key={className}
                   onClick={() => fetchStudentsByClass(className)}
-                  className="bg-white rounded-xl shadow-lg p-6 cursor-pointer transform hover:scale-105 transition duration-200 hover:shadow-xl"
+                  className="bg-white rounded-xl shadow-lg p-6 cursor-pointer transform hover:scale-105 transition duration-200 hover:shadow-xl border-2 border-transparent hover:border-blue-300"
                 >
                   <div className="text-center">
                     <div className="text-4xl mb-3">🎓</div>
                     <h3 className="text-xl font-bold text-gray-800">{className}</h3>
-                    <p className="text-gray-600 mt-2">Click to view students</p>
+                    <div className="mt-2">
+                      <span className="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+                        {stats.class_counts[className] || 0} students
+                      </span>
+                    </div>
+                    <p className="text-gray-600 mt-2 text-sm">Click to view students</p>
                   </div>
                 </div>
               ))}
@@ -490,7 +495,13 @@ function App() {
                 <div className="col-span-full text-center py-12">
                   <div className="text-6xl mb-4">📝</div>
                   <h3 className="text-xl font-semibold text-gray-600">No classes yet</h3>
-                  <p className="text-gray-500">Add your first student to create a class</p>
+                  <p className="text-gray-500 mb-4">Create your first class to get started</p>
+                  <button
+                    onClick={() => setIsAddClassModalOpen(true)}
+                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200"
+                  >
+                    ➕ Add First Class
+                  </button>
                 </div>
               )}
             </div>
