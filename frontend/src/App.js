@@ -396,6 +396,8 @@ function App() {
     try {
       await axios.delete(`${API}/students/${studentId}`);
       setStudents(students.filter(student => student.id !== studentId));
+      // Refresh stats when a student is deleted
+      fetchStats();
     } catch (error) {
       console.error("Error deleting student:", error);
     }
