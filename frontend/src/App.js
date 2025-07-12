@@ -323,11 +323,13 @@ const BookPanel = ({ isOpen, onClose }) => {
             required
           />
           <input
-            type="text"
-            placeholder="ISBN (optional)"
-            value={newBook.isbn}
-            onChange={(e) => setNewBook({...newBook, isbn: e.target.value})}
+            type="number"
+            placeholder="Quantity"
+            value={newBook.quantity}
+            onChange={(e) => setNewBook({...newBook, quantity: parseInt(e.target.value) || 1})}
             className="w-full px-3 py-2 border rounded-lg mb-3 focus:outline-none focus:border-blue-500"
+            min="1"
+            required
           />
           <button
             type="submit"
