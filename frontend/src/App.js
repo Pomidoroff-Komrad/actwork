@@ -239,7 +239,7 @@ const AddStudentModal = ({ isOpen, onClose, onAdd }) => {
 // Component for book management
 const BookPanel = ({ isOpen, onClose }) => {
   const [books, setBooks] = useState([]);
-  const [newBook, setNewBook] = useState({ title: "", author: "", isbn: "" });
+  const [newBook, setNewBook] = useState({ title: "", author: "", quantity: 1 });
   const [editingBook, setEditingBook] = useState(null);
 
   useEffect(() => {
@@ -262,7 +262,7 @@ const BookPanel = ({ isOpen, onClose }) => {
     try {
       const response = await axios.post(`${API}/books`, newBook);
       setBooks([...books, response.data]);
-      setNewBook({ title: "", author: "", isbn: "" });
+      setNewBook({ title: "", author: "", quantity: 1 });
     } catch (error) {
       console.error("Error adding book:", error);
     }
