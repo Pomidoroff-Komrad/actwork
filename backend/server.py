@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -6,7 +6,7 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 import uuid
 from datetime import datetime
 
@@ -27,30 +27,131 @@ api_router = APIRouter(prefix="/api")
 
 
 # Define Models
-class StatusCheck(BaseModel):
+class Student(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    first_name: str
+    last_name: str
+    class_name: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
-class StatusCheckCreate(BaseModel):
-    client_name: str
+class StudentCreate(BaseModel):
+    first_name: str
+    last_name: str
+    class_name: str
 
-# Add your routes to the router instead of directly to app
+class StudentUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    class_name: Optional[str] = None
+
+class Book(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    author: str
+    isbn: Optional[str] = None
+    available: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class BookCreate(BaseModel):
+    title: str
+    author: str
+    isbn: Optional[str] = None
+    available: bool = True
+
+class BookUpdate(BaseModel):
+    title: Optional[str] = None
+    author: Optional[str] = None
+    isbn: Optional[str] = None
+    available: Optional[bool] = None
+
+# Basic route
 @api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Librarian Assistant API"}
 
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.dict()
-    status_obj = StatusCheck(**status_dict)
-    _ = await db.status_checks.insert_one(status_obj.dict())
-    return status_obj
+# Student endpoints
+@api_router.post("/students", response_model=Student)
+async def create_student(student: StudentCreate):
+    student_dict = student.dict()
+    student_obj = Student(**student_dict)
+    await db.students.insert_one(student_obj.dict())
+    return student_obj
 
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    status_checks = await db.status_checks.find().to_list(1000)
-    return [StatusCheck(**status_check) for status_check in status_checks]
+@api_router.get("/students", response_model=List[Student])
+async def get_all_students():
+    students = await db.students.find().to_list(1000)
+    return [Student(**student) for student in students]
+
+@api_router.get("/students/class/{class_name}", response_model=List[Student])
+async def get_students_by_class(class_name: str):
+    students = await db.students.find({"class_name": class_name}).to_list(1000)
+    return [Student(**student) for student in students]
+
+@api_router.get("/classes")
+async def get_all_classes():
+    classes = await db.students.distinct("class_name")
+    return {"classes": classes}
+
+@api_router.put("/students/{student_id}", response_model=Student)
+async def update_student(student_id: str, student_update: StudentUpdate):
+    update_data = {k: v for k, v in student_update.dict().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No valid fields provided for update")
+    
+    result = await db.students.update_one(
+        {"id": student_id}, 
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    updated_student = await db.students.find_one({"id": student_id})
+    return Student(**updated_student)
+
+@api_router.delete("/students/{student_id}")
+async def delete_student(student_id: str):
+    result = await db.students.delete_one({"id": student_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Student not found")
+    return {"message": "Student deleted successfully"}
+
+# Book endpoints
+@api_router.post("/books", response_model=Book)
+async def create_book(book: BookCreate):
+    book_dict = book.dict()
+    book_obj = Book(**book_dict)
+    await db.books.insert_one(book_obj.dict())
+    return book_obj
+
+@api_router.get("/books", response_model=List[Book])
+async def get_all_books():
+    books = await db.books.find().to_list(1000)
+    return [Book(**book) for book in books]
+
+@api_router.put("/books/{book_id}", response_model=Book)
+async def update_book(book_id: str, book_update: BookUpdate):
+    update_data = {k: v for k, v in book_update.dict().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No valid fields provided for update")
+    
+    result = await db.books.update_one(
+        {"id": book_id}, 
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Book not found")
+    
+    updated_book = await db.books.find_one({"id": book_id})
+    return Book(**updated_book)
+
+@api_router.delete("/books/{book_id}")
+async def delete_book(book_id: str):
+    result = await db.books.delete_one({"id": book_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Book not found")
+    return {"message": "Book deleted successfully"}
 
 # Include the router in the main app
 app.include_router(api_router)
