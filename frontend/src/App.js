@@ -668,7 +668,7 @@ function App() {
             
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {students.map((student) => (
-                <div key={student.id} className="bg-white rounded-lg shadow-lg p-4">
+                <div key={student.id} className="bg-white rounded-lg shadow-lg p-6">
                   {editingStudent && editingStudent.id === student.id ? (
                     <div>
                       <input
@@ -714,8 +714,47 @@ function App() {
                   ) : (
                     <div>
                       <h3 className="text-lg font-semibold">{student.first_name} {student.last_name}</h3>
-                      <p className="text-gray-600">Class: {student.class_name}</p>
-                      <div className="flex space-x-2 mt-3">
+                      <p className="text-gray-600 mb-3">Class: {student.class_name}</p>
+                      
+                      {/* Borrowed Books Section */}
+                      <div className="mb-4">
+                        <h4 className="font-semibold text-sm text-gray-700 mb-2">📚 Borrowed Books:</h4>
+                        {student.borrowed_books && student.borrowed_books.length > 0 ? (
+                          <div className="space-y-2">
+                            {student.borrowed_books.map((borrowedBook, index) => (
+                              <div key={index} className="bg-gray-50 p-2 rounded text-sm">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <p className="font-medium">{borrowedBook.book_title}</p>
+                                    <p className="text-gray-500 text-xs">
+                                      Due: {new Date(borrowedBook.due_date).toLocaleDateString()}
+                                    </p>
+                                  </div>
+                                  <button
+                                    onClick={() => handleReturnBook(student.id, borrowedBook.book_id)}
+                                    className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
+                                  >
+                                    Return
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-gray-500 text-sm">No books borrowed</p>
+                        )}
+                      </div>
+                      
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => {
+                            setSelectedStudent(student);
+                            setIsBorrowModalOpen(true);
+                          }}
+                          className="px-3 py-1 bg-purple-500 text-white rounded text-sm hover:bg-purple-600"
+                        >
+                          Borrow
+                        </button>
                         <button
                           onClick={() => setEditingStudent(student)}
                           className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
