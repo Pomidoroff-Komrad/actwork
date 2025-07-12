@@ -427,67 +427,121 @@ class LibrarianAPITester:
             print("❌ Health check failed - aborting tests")
             return
         
+        print("\n--- ENHANCED ENDPOINTS TESTS ---")
+        
+        # 2. Test initial stats (before creating data)
+        initial_stats = self.test_get_stats()
+        
+        # 3. Test class creation
+        self.test_create_class("7C")
+        self.test_create_class("9A")
+        self.test_create_class("10B")
+        
         print("\n--- STUDENT MANAGEMENT TESTS ---")
         
-        # 2. Create students in different classes
+        # 4. Create students in different classes
         student1 = self.test_create_student("Emma", "Johnson", "7A")
         student2 = self.test_create_student("Liam", "Smith", "7A")
         student3 = self.test_create_student("Sophia", "Brown", "7B")
         student4 = self.test_create_student("Noah", "Davis", "8A")
+        student5 = self.test_create_student("Olivia", "Wilson", "7C")  # New class
         
-        # 3. Test retrieving all students
+        # 5. Test retrieving all students
         all_students = self.test_get_all_students()
         
-        # 4. Test retrieving students by class
+        # 6. Test retrieving students by class
         class_7a_students = self.test_get_students_by_class("7A")
         class_7b_students = self.test_get_students_by_class("7B")
         class_8a_students = self.test_get_students_by_class("8A")
+        class_7c_students = self.test_get_students_by_class("7C")
         
-        # 5. Test getting all classes
+        # 7. Test getting all classes
         all_classes = self.test_get_all_classes()
         
-        # 6. Test updating student (moving between classes)
+        # 8. Test updating student (moving between classes)
         if student1:
             self.test_update_student(student1['id'], {"class_name": "8A", "first_name": "Emma-Updated"})
         
         print("\n--- BOOK MANAGEMENT TESTS ---")
         
-        # 7. Create books with and without ISBN
+        # 9. Create books with and without ISBN
         book1 = self.test_create_book("The Great Gatsby", "F. Scott Fitzgerald", "978-0-7432-7356-5")
         book2 = self.test_create_book("To Kill a Mockingbird", "Harper Lee")  # No ISBN
         book3 = self.test_create_book("1984", "George Orwell", "978-0-452-28423-4", False)  # Not available
+        book4 = self.test_create_book("Pride and Prejudice", "Jane Austen", "978-0-14-143951-8")
         
-        # 8. Test retrieving all books
+        # 10. Test retrieving all books
         all_books = self.test_get_all_books()
         
-        # 9. Test updating book availability
+        # 11. Test updating book availability
         if book3:
             self.test_update_book(book3['id'], {"available": True, "title": "1984 - Updated Edition"})
         
+        print("\n--- ENHANCED STATS VERIFICATION ---")
+        
+        # 12. Test stats after creating data
+        updated_stats = self.test_get_stats()
+        if initial_stats and updated_stats:
+            # Verify stats have updated correctly
+            if updated_stats['total_students'] > initial_stats['total_students']:
+                self.log_result("Stats Update Verification - Students", True)
+            else:
+                self.log_result("Stats Update Verification - Students", False, "Student count didn't increase")
+            
+            if updated_stats['total_books'] > initial_stats['total_books']:
+                self.log_result("Stats Update Verification - Books", True)
+            else:
+                self.log_result("Stats Update Verification - Books", False, "Book count didn't increase")
+            
+            # Check if class counts are reasonable
+            if len(updated_stats['class_counts']) >= 3:  # Should have at least 7A, 7B, 8A, 7C
+                self.log_result("Stats Update Verification - Classes", True)
+            else:
+                self.log_result("Stats Update Verification - Classes", False, f"Expected at least 3 classes, got {len(updated_stats['class_counts'])}")
+        
+        print("\n--- CLASS EDGE CASES ---")
+        
+        # 13. Test class edge cases
+        self.test_class_edge_cases()
+        
         print("\n--- ERROR HANDLING TESTS ---")
         
-        # 10. Test error handling
+        # 14. Test error handling
         self.test_error_handling()
         
         print("\n--- DATA PERSISTENCE VERIFICATION ---")
         
-        # 11. Verify data persistence by re-fetching
+        # 15. Verify data persistence by re-fetching
         final_students = self.test_get_all_students()
         final_books = self.test_get_all_books()
+        final_stats = self.test_get_stats()
         
-        if final_students is not None and final_books is not None:
+        if final_students is not None and final_books is not None and final_stats is not None:
             self.log_result("Data Persistence Verification", True)
         else:
             self.log_result("Data Persistence Verification", False, "Could not verify data persistence")
         
         print("\n--- CLEANUP TESTS ---")
         
-        # 12. Test deletion (cleanup)
+        # 16. Test deletion (cleanup)
         for student_id in self.created_students[:2]:  # Delete first 2 students
             self.test_delete_student(student_id)
         
         for book_id in self.created_books[:1]:  # Delete first book
             self.test_delete_book(book_id)
+        
+        # 17. Verify stats after cleanup
+        cleanup_stats = self.test_get_stats()
+        if cleanup_stats and final_stats:
+            if cleanup_stats['total_students'] < final_stats['total_students']:
+                self.log_result("Stats After Cleanup - Students", True)
+            else:
+                self.log_result("Stats After Cleanup - Students", False, "Student count didn't decrease after deletion")
+            
+            if cleanup_stats['total_books'] < final_stats['total_books']:
+                self.log_result("Stats After Cleanup - Books", True)
+            else:
+                self.log_result("Stats After Cleanup - Books", False, "Book count didn't decrease after deletion")
         
         # Print final results
         print("\n" + "=" * 60)
