@@ -811,6 +811,7 @@ function App() {
         isOpen={isAddStudentModalOpen}
         onClose={() => setIsAddStudentModalOpen(false)}
         onAdd={handleAddStudent}
+        availableClasses={classes}
       />
 
       <BorrowBookModal
