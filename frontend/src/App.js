@@ -380,6 +380,16 @@ function App() {
     if (!classes.includes(newStudent.class_name)) {
       setClasses([...classes, newStudent.class_name]);
     }
+    // Refresh stats when a new student is added
+    fetchStats();
+  };
+
+  const handleAddClass = (newClassName) => {
+    if (!classes.includes(newClassName)) {
+      setClasses([...classes, newClassName]);
+    }
+    // Refresh stats when a new class is added
+    fetchStats();
   };
 
   const handleDeleteStudent = async (studentId) => {
