@@ -425,15 +425,47 @@ function App() {
               <h1 className="text-3xl font-bold text-gray-900">📚 Librarian Assistant</h1>
               <p className="text-gray-600">Manage students and books efficiently</p>
             </div>
-            <button
-              onClick={() => setIsAddStudentModalOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200"
-            >
-              ➕ Add Student
-            </button>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setIsAddClassModalOpen(true)}
+                className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200"
+              >
+                ➕ Add Class
+              </button>
+              <button
+                onClick={() => setIsAddStudentModalOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200"
+              >
+                👤 Add Student
+              </button>
+            </div>
           </div>
         </div>
       </header>
+
+      {/* Stats Bar */}
+      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div>
+              <div className="text-2xl font-bold">{stats.total_students}</div>
+              <div className="text-blue-100">Total Students</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold">{stats.total_classes}</div>
+              <div className="text-blue-100">Classes</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold">{stats.total_books}</div>
+              <div className="text-blue-100">Total Books</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold">{stats.available_books}</div>
+              <div className="text-blue-100">Available Books</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
