@@ -5,6 +5,89 @@ import axios from "axios";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Component for book borrowing
+const BorrowBookModal = ({ isOpen, onClose, student, availableBooks, onBorrow }) => {
+  const [selectedBookId, setSelectedBookId] = useState("");
+  const [dueDays, setDueDays] = useState(14);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API}/borrow`, {
+        student_id: student.id,
+        book_id: selectedBookId,
+        due_days: dueDays
+      });
+      onBorrow();
+      setSelectedBookId("");
+      setDueDays(14);
+      onClose();
+    } catch (error) {
+      console.error("Error borrowing book:", error);
+      alert(error.response?.data?.detail || "Failed to borrow book");
+    }
+  };
+
+  if (!isOpen || !student) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-96">
+        <h2 className="text-xl font-bold mb-4">Borrow Book for {student.first_name}</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Select Book
+            </label>
+            <select
+              value={selectedBookId}
+              onChange={(e) => setSelectedBookId(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+              required
+            >
+              <option value="">Choose a book...</option>
+              {availableBooks.map((book) => (
+                <option key={book.id} value={book.id}>
+                  {book.title} by {book.author} ({book.quantity - book.borrowed_count} available)
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Due in (days)
+            </label>
+            <input
+              type="number"
+              value={dueDays}
+              onChange={(e) => setDueDays(parseInt(e.target.value))}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+              min="1"
+              max="90"
+              required
+            />
+          </div>
+          <div className="flex justify-end space-x-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            >
+              Borrow Book
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 // Component for adding new class
 const AddClassModal = ({ isOpen, onClose, onAdd }) => {
   const [className, setClassName] = useState("");
