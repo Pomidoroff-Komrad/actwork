@@ -1,0 +1,13 @@
+ПОДГОТОВКА:
+1) Скачать mongoDB - https://www.mongodb.com/try/download/community (с vpn) - mongoDB compass не нужен, 
+база данных работает локльно на сервере и на нее нельзя зайти (как я понял)
+
+2) Node.js (v16+) Python (3.8+) MongoDB Community Edition (для работы)
+
+3)cd backend -> pip install -r requirements.txt
+
+4)cd frontend -> npm i
+
+ЗАПУСК
+1) backend: uvicorn server:app --reload --port 8001
+2) frontend: npm start

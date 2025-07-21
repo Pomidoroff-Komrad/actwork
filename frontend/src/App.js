@@ -33,11 +33,11 @@ const BorrowBookModal = ({ isOpen, onClose, student, availableBooks, onBorrow })
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-96">
-        <h2 className="text-xl font-bold mb-4">Borrow Book for {student.first_name}</h2>
+        <h2 className="text-xl font-bold mb-4">Выдать книгу ученику {student.first_name}</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">
-              Select Book
+              Выберите книгу
             </label>
             <select
               value={selectedBookId}
@@ -45,17 +45,17 @@ const BorrowBookModal = ({ isOpen, onClose, student, availableBooks, onBorrow })
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
               required
             >
-              <option value="">Choose a book...</option>
+              <option value="">Выбрать книгу:</option>
               {availableBooks.map((book) => (
                 <option key={book.id} value={book.id}>
-                  {book.title} by {book.author} ({book.quantity - book.borrowed_count} available)
+                  {book.title} от {book.author} ({book.quantity - book.borrowed_count} доступно)
                 </option>
               ))}
             </select>
           </div>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">
-              Due in (days)
+              Срок (дни)
             </label>
             <input
               type="number"
@@ -73,13 +73,13 @@ const BorrowBookModal = ({ isOpen, onClose, student, availableBooks, onBorrow })
               onClick={onClose}
               className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
-              Cancel
+              Отмена
             </button>
             <button
               type="submit"
               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             >
-              Borrow Book
+              Выдать
             </button>
           </div>
         </form>
@@ -111,18 +111,18 @@ const AddClassModal = ({ isOpen, onClose, onAdd }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-96">
-        <h2 className="text-xl font-bold mb-4">Add New Class</h2>
+        <h2 className="text-xl font-bold mb-4">Добавить класс</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">
-              Class Name
+              Номер и буква класса:
             </label>
             <input
               type="text"
               value={className}
               onChange={(e) => setClassName(e.target.value)}
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-              placeholder="e.g., 7A, 7B, 8C"
+              placeholder="например: 10Т"
               required
             />
           </div>
@@ -132,13 +132,13 @@ const AddClassModal = ({ isOpen, onClose, onAdd }) => {
               onClick={onClose}
               className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
-              Cancel
+              Отмена
             </button>
             <button
               type="submit"
               className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
             >
-              Add Class
+              Добавить
             </button>
           </div>
         </form>
@@ -176,11 +176,11 @@ const AddStudentModal = ({ isOpen, onClose, onAdd, availableClasses }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-96">
-        <h2 className="text-xl font-bold mb-4">Add New Student</h2>
+        <h2 className="text-xl font-bold mb-4">Добавить ученика</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">
-              First Name
+              Имя
             </label>
             <input
               type="text"
@@ -192,7 +192,7 @@ const AddStudentModal = ({ isOpen, onClose, onAdd, availableClasses }) => {
           </div>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">
-              Last Name
+              Фамилия
             </label>
             <input
               type="text"
@@ -204,7 +204,7 @@ const AddStudentModal = ({ isOpen, onClose, onAdd, availableClasses }) => {
           </div>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">
-              Class
+              Класс
             </label>
             <select
               value={className}
@@ -212,16 +212,14 @@ const AddStudentModal = ({ isOpen, onClose, onAdd, availableClasses }) => {
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
               required
             >
-              <option value="">Select a class...</option>
+              <option value="">Выбрать класс:</option>
               {availableClasses.map((cls) => (
                 <option key={cls} value={cls}>
                   {cls}
                 </option>
               ))}
             </select>
-            <p className="text-xs text-gray-500 mt-1">
-              Don't see your class? Add it first using the "Add Class" button.
-            </p>
+            
           </div>
           <div className="flex justify-end space-x-2">
             <button
@@ -235,7 +233,7 @@ const AddStudentModal = ({ isOpen, onClose, onAdd, availableClasses }) => {
               type="submit"
               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             >
-              Add Student
+              Добавить ученика
             </button>
           </div>
         </form>
@@ -302,7 +300,7 @@ const BookPanel = ({ isOpen, onClose }) => {
     }`}>
       <div className="p-6 h-full overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Books Library</h2>
+          <h2 className="text-2xl font-bold text-gray-800">Список книг</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 text-2xl"
@@ -313,10 +311,10 @@ const BookPanel = ({ isOpen, onClose }) => {
 
         {/* Add Book Form */}
         <form onSubmit={handleAddBook} className="mb-6 bg-gray-50 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold mb-3">Add New Book</h3>
+          <h3 className="text-lg font-semibold mb-3">Добавить книгу</h3>
           <input
             type="text"
-            placeholder="Book Title"
+            placeholder="Название"
             value={newBook.title}
             onChange={(e) => setNewBook({...newBook, title: e.target.value})}
             className="w-full px-3 py-2 border rounded-lg mb-2 focus:outline-none focus:border-blue-500"
@@ -324,7 +322,7 @@ const BookPanel = ({ isOpen, onClose }) => {
           />
           <input
             type="text"
-            placeholder="Author"
+            placeholder="Автор"
             value={newBook.author}
             onChange={(e) => setNewBook({...newBook, author: e.target.value})}
             className="w-full px-3 py-2 border rounded-lg mb-2 focus:outline-none focus:border-blue-500"
@@ -332,7 +330,7 @@ const BookPanel = ({ isOpen, onClose }) => {
           />
           <input
             type="number"
-            placeholder="Quantity"
+            placeholder="Количество"
             value={newBook.quantity}
             onChange={(e) => setNewBook({...newBook, quantity: parseInt(e.target.value) || 1})}
             className="w-full px-3 py-2 border rounded-lg mb-3 focus:outline-none focus:border-blue-500"
@@ -343,13 +341,13 @@ const BookPanel = ({ isOpen, onClose }) => {
             type="submit"
             className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600"
           >
-            Add Book
+            Добавить
           </button>
         </form>
 
         {/* Books List */}
         <div className="space-y-3">
-          <h3 className="text-lg font-semibold">All Books</h3>
+          <h3 className="text-lg font-semibold">Все книги:</h3>
           {books.map((book) => (
             <div key={book.id} className="border rounded-lg p-3 bg-gray-50">
               {editingBook && editingBook.id === book.id ? (
@@ -371,31 +369,31 @@ const BookPanel = ({ isOpen, onClose }) => {
                     value={editingBook.quantity || 1}
                     onChange={(e) => setEditingBook({...editingBook, quantity: parseInt(e.target.value) || 1})}
                     className="w-full px-2 py-1 border rounded mb-2"
-                    placeholder="Quantity"
+                    placeholder="Кол-во"
                     min="1"
                   />
                   <div className="flex space-x-2">
                     <button type="submit" className="px-3 py-1 bg-blue-500 text-white rounded text-sm">
-                      Save
+                      Сохранить
                     </button>
                     <button
                       type="button"
                       onClick={() => setEditingBook(null)}
                       className="px-3 py-1 bg-gray-500 text-white rounded text-sm"
                     >
-                      Cancel
+                      Отмена
                     </button>
                   </div>
                 </form>
               ) : (
                 <div>
                   <h4 className="font-semibold">{book.title}</h4>
-                  <p className="text-gray-600">by {book.author}</p>
+                  <p className="text-gray-600">от {book.author}</p>
                   <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
-                    <span>Quantity: {book.quantity}</span>
+                    <span>Количество: {book.quantity}</span>
                     <span>•</span>
                     <span className={book.borrowed_count > 0 ? "text-orange-600" : "text-green-600"}>
-                      {(book.quantity - book.borrowed_count)} available
+                      {(book.quantity - book.borrowed_count)} доступно
                     </span>
                   </div>
                   <div className="flex space-x-2 mt-2">
@@ -403,13 +401,13 @@ const BookPanel = ({ isOpen, onClose }) => {
                       onClick={() => setEditingBook(book)}
                       className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
                     >
-                      Edit
+                      Изменить
                     </button>
                     <button
                       onClick={() => handleDeleteBook(book.id)}
                       className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
                     >
-                      Delete
+                      Удалить
                     </button>
                   </div>
                 </div>
@@ -567,21 +565,21 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">📚 Librarian Assistant</h1>
-              <p className="text-gray-600">Manage students and books efficiently</p>
+              <h1 className="text-3xl font-bold text-gray-900">📚 Librarian Assistant(название)</h1>
+              <p className="text-gray-600">доп текст</p>
             </div>
             <div className="flex space-x-3">
               <button
                 onClick={() => setIsAddClassModalOpen(true)}
                 className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200"
               >
-                ➕ Add Class
+                ➕ Добавить класс
               </button>
               <button
                 onClick={() => setIsAddStudentModalOpen(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200"
               >
-                👤 Add Student
+                👤 Добавить ученика
               </button>
             </div>
           </div>
@@ -594,19 +592,19 @@ function App() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>
               <div className="text-2xl font-bold">{stats.total_students}</div>
-              <div className="text-blue-100">Total Students</div>
+              <div className="text-blue-100">Всего учеников</div>
             </div>
             <div>
               <div className="text-2xl font-bold">{stats.total_classes}</div>
-              <div className="text-blue-100">Classes</div>
+              <div className="text-blue-100">Кол-во классов</div>
             </div>
             <div>
               <div className="text-2xl font-bold">{stats.total_book_copies}</div>
-              <div className="text-blue-100">Book Copies</div>
+              <div className="text-blue-100">Кол-во книг</div>
             </div>
             <div>
               <div className="text-2xl font-bold">{stats.available_copies}</div>
-              <div className="text-blue-100">Available</div>
+              <div className="text-blue-100">Доступно</div>
             </div>
           </div>
         </div>
@@ -616,7 +614,7 @@ function App() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {!selectedClass ? (
           <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Select a Class</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Выберите класс</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {classes.map((className) => (
                 <div
@@ -629,23 +627,23 @@ function App() {
                     <h3 className="text-xl font-bold text-gray-800">{className}</h3>
                     <div className="mt-2">
                       <span className="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
-                        {stats.class_counts[className] || 0} students
+                        {stats.class_counts[className] || 0} учеников
                       </span>
                     </div>
-                    <p className="text-gray-600 mt-2 text-sm">Click to view students</p>
+                    <p className="text-gray-600 mt-2 text-sm">Нажми, чтобы увидеть учеников</p>
                   </div>
                 </div>
               ))}
               {classes.length === 0 && (
                 <div className="col-span-full text-center py-12">
                   <div className="text-6xl mb-4">📝</div>
-                  <h3 className="text-xl font-semibold text-gray-600">No classes yet</h3>
-                  <p className="text-gray-500 mb-4">Create your first class to get started</p>
+                  <h3 className="text-xl font-semibold text-gray-600">Нет классов</h3>
+                  <p className="text-gray-500 mb-4">Создайте 1 класс для начала работы</p>
                   <button
                     onClick={() => setIsAddClassModalOpen(true)}
                     className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200"
                   >
-                    ➕ Add First Class
+                    ➕ Добавить первый класс
                   </button>
                 </div>
               )}
@@ -659,7 +657,7 @@ function App() {
                   onClick={() => setSelectedClass(null)}
                   className="text-blue-600 hover:text-blue-800 font-semibold mb-2"
                 >
-                  ← Back to Classes
+                  ← Вернуться на главную страницу
                 </button>
                 <h2 className="text-2xl font-bold text-gray-800">Class {selectedClass}</h2>
                 <p className="text-gray-600">
@@ -670,7 +668,7 @@ function App() {
                 onClick={() => setIsBorrowModalOpen(true)}
                 className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200"
               >
-                📚 Borrow Book
+                📚 Borrow Book(?)
               </button>
             </div>
             
@@ -726,7 +724,7 @@ function App() {
                       
                       {/* Borrowed Books Section */}
                       <div className="mb-4">
-                        <h4 className="font-semibold text-sm text-gray-700 mb-2">📚 Borrowed Books:</h4>
+                        <h4 className="font-semibold text-sm text-gray-700 mb-2">Выданные книги:</h4>
                         {student.borrowed_books && student.borrowed_books.length > 0 ? (
                           <div className="space-y-2">
                             {student.borrowed_books.map((borrowedBook, index) => (
@@ -742,14 +740,14 @@ function App() {
                                     onClick={() => handleReturnBook(student.id, borrowedBook.book_id)}
                                     className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
                                   >
-                                    Return
+                                    Вернуть
                                   </button>
                                 </div>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <p className="text-gray-500 text-sm">No books borrowed</p>
+                          <p className="text-gray-500 text-sm">Нет выданных книг</p>
                         )}
                       </div>
                       
@@ -761,19 +759,19 @@ function App() {
                           }}
                           className="px-3 py-1 bg-purple-500 text-white rounded text-sm hover:bg-purple-600"
                         >
-                          Borrow
+                          Выдать
                         </button>
                         <button
                           onClick={() => setEditingStudent(student)}
                           className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
                         >
-                          Edit
+                          Изменить
                         </button>
                         <button
                           onClick={() => handleDeleteStudent(student.id)}
                           className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
                         >
-                          Delete
+                          Удалить
                         </button>
                       </div>
                     </div>
