@@ -9,6 +9,11 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 import uuid
 from datetime import datetime, timedelta, timedelta
+#НОВОЕ
+from fastapi.responses import StreamingResponse
+from pymongo import MongoClient
+import pandas as pd
+import io
 
 
 ROOT_DIR = Path(__file__).parent
@@ -291,7 +296,7 @@ async def get_stats():
     }
 
 # Include the router in the main app
-app.include_router(api_router)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -311,3 +316,51 @@ logger = logging.getLogger(__name__)
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
+# НОВОЕ
+@api_router.get("/export_students")
+async def export_students():
+    cursor = db.students.find({}, {"_id": 0})
+    students = await cursor.to_list(length=None)  
+
+    if not students:
+        return {"message": "Нет данных для экспорта"}
+
+    # Превращаем данные в DataFrame
+    df = pd.DataFrame(students)
+
+    # Сохраняем Excel в память
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Ученики")
+    output.seek(0)
+
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=students.xlsx"}
+    )
+
+@api_router.get("/export_books")
+async def export_books():
+    cursor = db.books.find({}, {"_id": 0})
+    books = await cursor.to_list(length=None)
+
+    if not books:
+        return {"message": "Нет данных для экспорта"}
+
+    df = pd.DataFrame(books)
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Книги")
+    output.seek(0)
+
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=books.xlsx"}
+    )
+
+
+
+app.include_router(api_router)

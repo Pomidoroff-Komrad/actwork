@@ -9,7 +9,8 @@ const API = `${BACKEND_URL}/api`;
 const BorrowBookModal = ({ isOpen, onClose, student, availableBooks, onBorrow }) => {
   const [selectedBookId, setSelectedBookId] = useState("");
   const [dueDays, setDueDays] = useState(14);
-
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -27,64 +28,155 @@ const BorrowBookModal = ({ isOpen, onClose, student, availableBooks, onBorrow })
       alert(error.response?.data?.detail || "Failed to borrow book");
     }
   };
-
+  const options = availableBooks.map((book) => ({
+    value: book.id,
+    label: `${book.title} — ${book.author} (${book.quantity - book.borrowed_count} доступно)`
+  }));
   if (!isOpen || !student) return null;
-
+  
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-96">
-        <h2 className="text-xl font-bold mb-4">Выдать книгу ученику {student.first_name}</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Выберите книгу
-            </label>
-            <select
-              value={selectedBookId}
-              onChange={(e) => setSelectedBookId(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-              required
-            >
-              <option value="">Выбрать книгу:</option>
-              {availableBooks.map((book) => (
-                <option key={book.id} value={book.id}>
-                  {book.title} от {book.author} ({book.quantity - book.borrowed_count} доступно)
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Срок (дни)
-            </label>
-            <input
-              type="number"
-              value={dueDays}
-              onChange={(e) => setDueDays(parseInt(e.target.value))}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-              min="1"
-              max="90"
-              required
-            />
-          </div>
-          <div className="flex justify-end space-x-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              Отмена
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-            >
-              Выдать
-            </button>
-          </div>
-        </form>
+     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div className="bg-white rounded-lg p-6 w-96 relative">
+    <h2 className="text-xl font-bold mb-4">
+      Выдать книгу ученику {student.first_name}
+    </h2>
+    <form onSubmit={handleSubmit}>
+      {/* Поиск и выбор книги */}
+      <div className="mb-4">
+        <label className="block text-gray-700 text-sm font-bold mb-2">
+          Выберите книгу
+        </label>
+
+        {/* Поле поиска */}
+        <input
+          type="text"
+          placeholder="Поиск книги"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full px-3 py-2 mb-2 border rounded-lg focus:outline-none focus:border-blue-500"
+        />
+
+        {/* Выпадающий список — всегда виден */}
+        <div className="border rounded-lg max-h-40 overflow-y-auto">
+          {availableBooks
+            .filter(
+              (book) =>
+                book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                book.author.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+            .map((book) => (
+              <div
+                key={book.id}
+                className={`px-3 py-2 cursor-pointer hover:bg-gray-100 ${
+                  selectedBookId === book.id ? "bg-blue-100" : ""
+                }`}
+                onClick={() => {
+                  setSelectedBookId(book.id);
+                  setSearchTerm(book.title); // заполняем поисковое поле названием
+                }}
+              >
+                {book.title} от {book.author} (
+                {book.quantity - book.borrowed_count} доступно)
+              </div>
+            ))}
+        </div>
       </div>
-    </div>
+
+      {/* Срок (дни) */}
+      <div className="mb-4">
+        <label className="block text-gray-700 text-sm font-bold mb-2">
+          Срок (дни)
+        </label>
+        <input
+          type="number"
+          value={dueDays}
+          onChange={(e) => setDueDays(parseInt(e.target.value))}
+          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+          min="1"
+          max="90"
+          required
+        />
+      </div>
+
+      {/* Кнопки */}
+      <div className="flex justify-end space-x-2">
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+        >
+          Отмена
+        </button>
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          disabled={!selectedBookId}
+        >
+          Выдать
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+  //сверху финальный вариант 
+              //снизу начальный
+
+    // <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    //   <div className="bg-white rounded-lg p-6 w-96">
+    //     <h2 className="text-xl font-bold mb-4">Выдать книгу ученику {student.first_name}</h2>
+    //     <form onSubmit={handleSubmit}>
+    //       <div className="mb-4">
+    //         <label className="block text-gray-700 text-sm font-bold mb-2">
+    //           Выберите книгу
+    //         </label>
+    //         <select
+    //           value={selectedBookId}
+    //           onChange={(e) => setSelectedBookId(e.target.value)}
+    //           className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+    //           required
+    //         >
+    //           <option value="">Выбрать книгу:</option>
+    //           {availableBooks.map((book) => (
+    //             <option key={book.id} value={book.id}>
+    //               {book.title} от {book.author} ({book.quantity - book.borrowed_count} доступно)
+    //             </option>
+    //           ))}
+    //         </select>
+    //       </div>
+    //       <div className="mb-4">
+    //         <label className="block text-gray-700 text-sm font-bold mb-2">
+    //           Срок (дни)
+    //         </label>
+    //         <input
+    //           type="number"
+    //           value={dueDays}
+    //           onChange={(e) => setDueDays(parseInt(e.target.value))}
+    //           className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+    //           min="1"
+    //           max="90"
+    //           required
+    //         />
+    //       </div>
+    //       <div className="flex justify-end space-x-2">
+    //         <button
+    //           type="button"
+    //           onClick={onClose}
+    //           className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+    //         >
+    //           Отмена
+    //         </button>
+    //         <button
+    //           type="submit"
+    //           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+    //         >
+    //           Выдать
+    //         </button>
+    //       </div>
+    //     </form>
+    //   </div>
+    // </div>
+
   );
 };
 
@@ -557,7 +649,15 @@ function App() {
       console.error("Error updating student:", error);
     }
   };
+//новое
 
+  const handleExportStudents = () => {
+    window.open("http://localhost:8001/api/export_students", "_blank");
+  };
+
+  const handleExportBooks = () => {
+    window.open("http://localhost:8001/api/export_books", "_blank");
+  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
@@ -581,6 +681,23 @@ function App() {
               >
                 👤 Добавить ученика
               </button>
+
+              {/* НОВОЕ/КНОПКИ */}
+
+              <button 
+              onClick={handleExportStudents} 
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200"
+              >
+                📥 Экспорт учеников
+              </button>
+              <button
+              onClick={handleExportBooks}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200"
+              >
+                📥 Экспорт книг
+              </button>
+
+              {/* НОВОЕ/КНОПКИ */}
             </div>
           </div>
         </div>
@@ -664,12 +781,6 @@ function App() {
                   {stats.class_counts[selectedClass] || 0} student{stats.class_counts[selectedClass] !== 1 ? 's' : ''} enrolled
                 </p>
               </div>
-              <button
-                onClick={() => setIsBorrowModalOpen(true)}
-                className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200"
-              >
-                📚 Borrow Book(?)
-              </button>
             </div>
             
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -838,5 +949,6 @@ function App() {
     </div>
   );
 }
+//НОВОЕ:
 
-export default App;
+export default App; 

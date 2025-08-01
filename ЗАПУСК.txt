@@ -11,3 +11,7 @@
 ЗАПУСК
 1) backend: uvicorn server:app --reload --port 8001
 2) frontend: npm start
+
+
+
+app.include_router(api_router)
