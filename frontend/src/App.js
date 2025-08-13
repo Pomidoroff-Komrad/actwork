@@ -9,7 +9,6 @@ const API = `${BACKEND_URL}/api`;
 const BorrowBookModal = ({ isOpen, onClose, student, availableBooks, onBorrow }) => {
   const [selectedBookId, setSelectedBookId] = useState("");
   const [dueDays, setDueDays] = useState(14);
-  const [searchQuery, setSearchQuery] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,10 +27,6 @@ const BorrowBookModal = ({ isOpen, onClose, student, availableBooks, onBorrow })
       alert(error.response?.data?.detail || "Failed to borrow book");
     }
   };
-  const options = availableBooks.map((book) => ({
-    value: book.id,
-    label: `${book.title} — ${book.author} (${book.quantity - book.borrowed_count} доступно)`
-  }));
   if (!isOpen || !student) return null;
   
   return (
@@ -118,65 +113,6 @@ const BorrowBookModal = ({ isOpen, onClose, student, availableBooks, onBorrow })
     </form>
   </div>
 </div>
-
-  //сверху финальный вариант 
-              //снизу начальный
-
-    // <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    //   <div className="bg-white rounded-lg p-6 w-96">
-    //     <h2 className="text-xl font-bold mb-4">Выдать книгу ученику {student.first_name}</h2>
-    //     <form onSubmit={handleSubmit}>
-    //       <div className="mb-4">
-    //         <label className="block text-gray-700 text-sm font-bold mb-2">
-    //           Выберите книгу
-    //         </label>
-    //         <select
-    //           value={selectedBookId}
-    //           onChange={(e) => setSelectedBookId(e.target.value)}
-    //           className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-    //           required
-    //         >
-    //           <option value="">Выбрать книгу:</option>
-    //           {availableBooks.map((book) => (
-    //             <option key={book.id} value={book.id}>
-    //               {book.title} от {book.author} ({book.quantity - book.borrowed_count} доступно)
-    //             </option>
-    //           ))}
-    //         </select>
-    //       </div>
-    //       <div className="mb-4">
-    //         <label className="block text-gray-700 text-sm font-bold mb-2">
-    //           Срок (дни)
-    //         </label>
-    //         <input
-    //           type="number"
-    //           value={dueDays}
-    //           onChange={(e) => setDueDays(parseInt(e.target.value))}
-    //           className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-    //           min="1"
-    //           max="90"
-    //           required
-    //         />
-    //       </div>
-    //       <div className="flex justify-end space-x-2">
-    //         <button
-    //           type="button"
-    //           onClick={onClose}
-    //           className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-    //         >
-    //           Отмена
-    //         </button>
-    //         <button
-    //           type="submit"
-    //           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-    //         >
-    //           Выдать
-    //         </button>
-    //       </div>
-    //     </form>
-    //   </div>
-    // </div>
-
   );
 };
 
@@ -319,7 +255,7 @@ const AddStudentModal = ({ isOpen, onClose, onAdd, availableClasses }) => {
               onClick={onClose}
               className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
-              Cancel
+              Отмена
             </button>
             <button
               type="submit"
@@ -339,6 +275,7 @@ const BookPanel = ({ isOpen, onClose }) => {
   const [books, setBooks] = useState([]);
   const [newBook, setNewBook] = useState({ title: "", author: "", quantity: 1 });
   const [editingBook, setEditingBook] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -385,7 +322,6 @@ const BookPanel = ({ isOpen, onClose }) => {
       console.error("Error updating book:", error);
     }
   };
-
   return (
     <div className={`fixed top-0 right-0 h-full w-96 bg-white shadow-2xl transform transition-transform duration-300 z-40 ${
       isOpen ? 'translate-x-0' : 'translate-x-full'
@@ -512,6 +448,170 @@ const BookPanel = ({ isOpen, onClose }) => {
   );
 };
 
+
+const InfoPanel = ({ isOpen, onClose }) => {
+  const [selectedFile, setSelectedFile] = useState(null); // Для учеников
+  const [selectedBookFile, setSelectedBookFile] = useState(null); // Для книг
+
+  // ======= ЭКСПОРТ =======
+  const handleExportStudents = () => {
+    window.open(`${API}/export_students`, "_blank");
+  };
+
+  const handleExportBooks = () => {
+    window.open(`${API}/export_books`, "_blank");
+  };
+
+  const handleImportStudents = async (e) => {
+    e.preventDefault();
+    if (!selectedFile) {
+      alert("Выберите Excel файл для импорта учеников");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    try {
+      const response = await axios.post(`${API}/students/import_excel`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const { added = [], skipped = [] } = response.data || {};
+      alert(`Добавлено: ${added.length}, Пропущено: ${skipped.length}`);
+      setSelectedFile(null);
+    } catch (error) {
+      console.error("Ошибка при импорте учеников:", error.response?.data || error);
+      alert(`Ошибка: ${error.response?.data?.detail || "Неизвестная ошибка"}`);
+    }
+  };
+
+  // ======= ИМПОРТ КНИГ =======
+  const handleImportBooks = async (e) => {
+    e.preventDefault();
+    if (!selectedBookFile) {
+      alert("Выберите Excel файл для импорта книг");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", selectedBookFile);
+
+    try {
+      const response = await axios.post(`${API}/books/import_excel`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const { added = [], updated = [] } = response.data || {};
+      alert(`Добавлено: ${added.length}, Обновлено: ${updated.length}`);
+      setSelectedBookFile(null);
+    } catch (error) {
+      console.error("Ошибка при импорте книг:", error.response?.data || error);
+      alert(`Ошибка: ${error.response?.data?.detail || "Неизвестная ошибка"}`);
+    }
+  };
+
+  return (
+    <div
+      className={`fixed top-0 left-0 h-full w-96 bg-white shadow-2xl transform transition-transform duration-300 z-40 ${
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      }`}
+    >
+      <div className="p-6 h-full overflow-y-auto">
+        {/* Заголовок */}
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">Меню импорта/экспорта</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 text-2xl"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Экспорт */}
+        <div className="bg-gray-50 p-4 rounded-lg mb-6">
+          <h3 className="font-semibold text-gray-700 mb-3">Экспорт данных:</h3>
+          <div className="flex space-x-3">
+            <button
+              onClick={handleExportStudents}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 flex-1"
+            >
+              📥 Ученики
+            </button>
+            <button
+              onClick={handleExportBooks}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 flex-1"
+            >
+              📚 Книги
+            </button>
+          </div>
+        </div>
+
+        {/* Импорт */}
+        <div className="bg-gray-50 p-4 rounded-lg space-y-6">
+          <h3 className="font-semibold text-gray-700">Импорт данных:</h3>
+
+          <div>
+            <label
+              htmlFor="studentsFile"
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg cursor-pointer transition duration-200 inline-block"
+            >
+              📂 Выбрать файл учеников
+            </label>
+            <input
+              id="studentsFile"
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={(e) => setSelectedFile(e.target.files[0])}
+              className="hidden"
+            />
+            {selectedFile && (
+              <div className="text-sm text-gray-600 mt-1 truncate">
+                {selectedFile.name}
+              </div>
+            )}
+            <button
+              onClick={handleImportStudents}
+              className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 mt-2 w-full"
+              disabled={!selectedFile}
+            >
+              📤 Импортировать учеников
+            </button>
+          </div>
+
+          {/* Импорт книг */}
+          <div>
+            <label
+              htmlFor="booksFile"
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg cursor-pointer transition duration-200 inline-block"
+            >
+              📂 Выбрать файл книг
+            </label>
+            <input
+              id="booksFile"
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={(e) => setSelectedBookFile(e.target.files[0])}
+              className="hidden"
+            />
+            {selectedBookFile && (
+              <div className="text-sm text-gray-600 mt-1 truncate">
+                {selectedBookFile.name}
+              </div>
+            )}
+            <button
+              onClick={handleImportBooks}
+              className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 mt-2 w-full"
+              disabled={!selectedBookFile}
+            >
+              📤 Импортировать книги
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Main App Component
 function App() {
   const [classes, setClasses] = useState([]);
@@ -524,6 +624,7 @@ function App() {
   const [isBorrowModalOpen, setIsBorrowModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [editingStudent, setEditingStudent] = useState(null);
+  const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false)
   const [stats, setStats] = useState({
     total_students: 0,
     total_book_titles: 0,
@@ -649,15 +750,6 @@ function App() {
       console.error("Error updating student:", error);
     }
   };
-//новое
-
-  const handleExportStudents = () => {
-    window.open("http://localhost:8001/api/export_students", "_blank");
-  };
-
-  const handleExportBooks = () => {
-    window.open("http://localhost:8001/api/export_books", "_blank");
-  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
@@ -681,23 +773,6 @@ function App() {
               >
                 👤 Добавить ученика
               </button>
-
-              {/* НОВОЕ/КНОПКИ */}
-
-              <button 
-              onClick={handleExportStudents} 
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200"
-              >
-                📥 Экспорт учеников
-              </button>
-              <button
-              onClick={handleExportBooks}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200"
-              >
-                📥 Экспорт книг
-              </button>
-
-              {/* НОВОЕ/КНОПКИ */}
             </div>
           </div>
         </div>
@@ -733,7 +808,22 @@ function App() {
           <div>
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Выберите класс</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {classes.map((className) => (
+              {[...classes]
+              .sort((a, b) => {
+              const matchA = a.match(/^(\d+)\s*(.*)$/);
+              const matchB = b.match(/^(\d+)\s*(.*)$/);
+
+              if (matchA && matchB) {
+                const numA = parseInt(matchA[1], 10);
+                const numB = parseInt(matchB[1], 10);
+
+              if (numA !== numB) return numB - numA; 
+                return matchA[2].localeCompare(matchB[2], 'ru');
+            }
+              return a.localeCompare(b, 'ru', { numeric: true });
+        })
+        .map((className) => (
+
                 <div
                   key={className}
                   onClick={() => fetchStudentsByClass(className)}
@@ -818,13 +908,13 @@ function App() {
                           })}
                           className="px-3 py-1 bg-blue-500 text-white rounded text-sm"
                         >
-                          Save
+                          Сохранить
                         </button>
                         <button
                           onClick={() => setEditingStudent(null)}
                           className="px-3 py-1 bg-gray-500 text-white rounded text-sm"
                         >
-                          Cancel
+                          Отмена
                         </button>
                       </div>
                     </div>
@@ -844,7 +934,7 @@ function App() {
                                   <div>
                                     <p className="font-medium">{borrowedBook.book_title}</p>
                                     <p className="text-gray-500 text-xs">
-                                      Due: {new Date(borrowedBook.due_date).toLocaleDateString()}
+                                      До: {new Date(borrowedBook.due_date).toLocaleDateString()}
                                     </p>
                                   </div>
                                   <button
@@ -908,7 +998,12 @@ function App() {
       >
         📚 →
       </button>
-
+      <button
+  onClick={() => setIsInfoPanelOpen(true)}
+  className="fixed top-1/2 left-0 transform -translate-y-1/2 bg-green-600 hover:bg-green-700 text-white p-3 rounded-r-lg shadow-lg z-30"
+>
+  ← 📚
+</button>
       {/* Modals and Panels */}
       <AddClassModal 
         isOpen={isAddClassModalOpen}
@@ -938,7 +1033,12 @@ function App() {
         isOpen={isBookPanelOpen}
         onClose={() => setIsBookPanelOpen(false)}
       />
-
+      {/* новый модуль */}
+      <InfoPanel
+        isOpen={isInfoPanelOpen}
+        onClose={() => setIsInfoPanelOpen(false)}
+      />
+      {/* новый модуль */}
       {/* Overlay */}
       {isBookPanelOpen && (
         <div 
@@ -946,9 +1046,15 @@ function App() {
           onClick={() => setIsBookPanelOpen(false)}
         />
       )}
+      {isInfoPanelOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-30 z-30"
+          onClick={() => setIsInfoPanelOpen(false)}
+        />
+      )}
     </div>
   );
 }
-//НОВОЕ:
+
 
 export default App; 

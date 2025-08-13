@@ -11,9 +11,12 @@ import uuid
 from datetime import datetime, timedelta, timedelta
 #НОВОЕ
 from fastapi.responses import StreamingResponse
-from pymongo import MongoClient
+from pymongo import MongoClient # DONOT REMOVE
 import pandas as pd
 import io
+from fastapi import UploadFile, File
+import openpyxl
+from io import BytesIO
 
 
 ROOT_DIR = Path(__file__).parent
@@ -110,6 +113,7 @@ async def get_students_by_class(class_name: str):
 @api_router.get("/classes")
 async def get_all_classes():
     classes = await db.students.distinct("class_name")
+    classes.sort()  
     return {"classes": classes}
 
 @api_router.put("/students/{student_id}", response_model=Student)
@@ -257,11 +261,28 @@ async def return_book(return_request: ReturnRequest):
 class ClassCreate(BaseModel):
     name: str
 
+# @api_router.post("/classes")
+# async def create_class(class_data: ClassCreate):
+#     # For now, we'll just return success since classes are created when students are added
+#     # But we could store empty classes in the future if needed
+#     return {"message": f"Class {class_data.name} is ready to accept students", "class_name": class_data.name}
 @api_router.post("/classes")
 async def create_class(class_data: ClassCreate):
-    # For now, we'll just return success since classes are created when students are added
-    # But we could store empty classes in the future if needed
-    return {"message": f"Class {class_data.name} is ready to accept students", "class_name": class_data.name}
+    # Проверяем, есть ли уже класс с таким именем
+    existing_class = await db.classes.find_one({"name": class_data.name})
+    if existing_class:
+        return {"message": f"Класс '{class_data.name}' уже существует"}
+
+    # Создаём пустой класс
+    new_class = {
+        "name": class_data.name,
+        "students": []  # пустой список учеников
+    }
+
+    await db.classes.insert_one(new_class)
+
+    return {"message": f"Класс {class_data.name} создан", "class_name": class_data.name}
+
 
 @api_router.get("/stats")
 async def get_stats():
@@ -361,6 +382,105 @@ async def export_books():
         headers={"Content-Disposition": "attachment; filename=books.xlsx"}
     )
 
+
+#NEW
+@api_router.post("/students/import_excel")
+async def import_students_excel(file: UploadFile = File(...)):
+    if not file.filename.endswith((".xlsx", ".xls")):
+        raise HTTPException(status_code=400, detail="Invalid file format. Please upload an Excel file.")
+
+    try:
+        contents = await file.read()
+        workbook = openpyxl.load_workbook(BytesIO(contents), data_only=True)  # FIX
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error reading Excel file: {str(e)}")
+
+    sheet = workbook.active
+    added_students = []
+    skipped_students = []
+
+    for row in sheet.iter_rows(min_row=2, values_only=True):
+        last_name, first_name, class_name = row
+        if not (last_name and first_name and class_name):
+            continue  
+
+        # Создаём класс, если его нет в коллекции "classes"
+        existing_class = await db.classes.find_one({"name": class_name})
+        if not existing_class:
+            await db.classes.insert_one({"name": class_name})
+
+        # Проверяем, есть ли ученик
+        existing_student = await db.students.find_one({
+            "first_name": first_name,
+            "last_name": last_name,
+            "class_name": class_name
+        })
+        if existing_student:
+            skipped_students.append(f"{last_name} {first_name} ({class_name})")
+            continue
+
+        student_obj = {
+            "id": str(uuid.uuid4()),
+            "first_name": first_name,
+            "last_name": last_name,
+            "class_name": class_name
+        }
+        await db.students.insert_one(student_obj)
+        added_students.append(f"{last_name} {first_name} ({class_name})")
+
+    return {
+        "added": added_students,
+        "skipped": skipped_students
+    }
+
+@api_router.post("/books/import_excel")
+async def import_books_excel(file: UploadFile = File(...)):
+    if not file.filename.endswith((".xlsx", ".xls")):
+        raise HTTPException(status_code=400, detail="Invalid file format. Please upload an Excel file.")
+
+    try:
+        contents = await file.read()
+        workbook = openpyxl.load_workbook(BytesIO(contents), data_only=True)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error reading Excel file: {str(e)}")
+
+    sheet = workbook.active
+    added_books = []
+    updated_books = []
+
+    for row in sheet.iter_rows(min_row=2, values_only=True):
+        title, author, quantity = row
+        if not (title and author and quantity):
+            continue
+
+        existing_book = await db.books.find_one({
+            "title": title,
+            "author": author
+        })
+
+        if existing_book:
+            # Увеличиваем количество
+            new_quantity = existing_book.get("quantity", 0) + int(quantity)
+            await db.books.update_one(
+                {"id": existing_book["id"]},
+                {"$set": {"quantity": new_quantity}}
+            )
+            updated_books.append(f"{title} — {author} (+{quantity})")
+        else:
+            # Добавляем новую книгу
+            book_obj = {
+                "id": str(uuid.uuid4()),
+                "title": title,
+                "author": author,
+                "quantity": int(quantity)
+            }
+            await db.books.insert_one(book_obj)
+            added_books.append(f"{title} — {author} ({quantity})")
+
+    return {
+        "added": added_books,
+        "updated": updated_books
+    }
 
 
 app.include_router(api_router)
